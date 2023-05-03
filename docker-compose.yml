@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  account-api:
+    container_name: account-api
+    build:
+      context: .
+      dockerfile: account-api/Dockerfile
+    image: account-api
+    ports:
+      - 8080:8080
+    # volumes:
+    #   - ./account-api:/app
+    env_file:
+      - .env
+
+  wallet-api:
+    container_name: wallet-api
+    build:
+      context: .
+      dockerfile: wallet-api/Dockerfile
+    image: wallet-api
+    ports:
+      - 8081:8080
+    # volumes:
+    #   - ./account-api:/app
+    env_file:
+      - .env
+
+  # bitcoind:
+  #   container_name: bitcoind
+  #   build:
+  #     context: .
+  #     dockerfile: ./conf/bitcoind/Dockerfile
+  #   image: bitcoind
+  #   ports:
+  #     - '8332:8332'
+  #     - '18332:18332'
+  #   volumes:
+  #     - /Users/daghan/bitcoin/testnet3:/root/bitcoin/data/testnet3
+
+  # electrumx:
+  #   container_name: electrumx
+  #   build:
+  #     context: .
+  #     dockerfile: ./conf/electrumx/Dockerfile
+  #   image: electrumx
+  #   environment:
+  #     - DAEMON_URL=http://admin:admin@bitcoind:8332
+  #     - COIN=BitcoinSegwit
+  #     - NET=testnet
+  #     - REORG_LIMIT=0
+  #   ports:
+  #     - '50001:50001'
+  #     - '50002:50002'
+  #     - '50004:50004'
+  #     - '8000:8000'
+  #   volumes:
+  #     - /Users/daghan/electrumx:/data
+  #   depends_on:
+  #     - bitcoind

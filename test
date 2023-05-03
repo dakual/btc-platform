@@ -1,0 +1,57 @@
+curl --data-binary '{"jsonrpc":"2.0","id":"curltext","method":"getbalance","params":[]}' http://admin:admin@127.0.0.1:7777
+
+curl --data-binary '{"id":"myquery","method":"getaddressbalance","params":["mkrRJzD9QVaeynDk5JLstg3pYkksLuNnNN"]}' http://admin:admin@127.0.0.1:7777
+
+curl --data-binary '{"id":"myquery","method":"getaddressbalance","params":["mmGkwmzwVQj2sRsBvjt3mKRuE7R9EXMSHG"]}' http://admin:admin@127.0.0.1:7777
+
+
+curl --user admin:admin --data-binary '{"jsonrpc": "1.0", "id": "curltest", "method": "getrpcinfo", "params": []}' -H 'content-type: text/plain;' http://127.0.0.1:18332/
+
+
+curl --user admin:admin --data-binary '{"jsonrpc": "1.0", "id": "curltest", "method": "getreceivedbyaddress", "params": ["bc1q09vm5lfy0j5reeulh4x5752q25uqqvz34hufdl", 6]}' -H 'content-type: text/plain;' http://127.0.0.1:18332/
+
+
+curl --user admin:admin --data-binary '{"jsonrpc": "1.0", "id": "curltest", "method": "listunspent", "params": [0, 9999999, [\"mkrRJzD9QVaeynDk5JLstg3pYkksLuNnNN\"]]}' -H 'content-type: text/plain;' http://127.0.0.1:18332/
+
+curl --user admin:admin --data-binary '{"jsonrpc": "1.0", "id": "curltest", "method": "listreceivedbyaddress", "params": [1, true, true, "mkrRJzD9QVaeynDk5JLstg3pYkksLuNnNN"]}' -H 'content-type: text/plain;' http://127.0.0.1:18332/
+
+curl --user admin:admin --data-binary '{"jsonrpc": "1.0", "id": "curltest", "method": "gettransaction", "params": ["mkrRJzD9QVaeynDk5JLstg3pYkksLuNnNN"]}' -H 'content-type: text/plain;' http://127.0.0.1:18332/
+
+
+docker run \
+  -v /Users/daghan/electrumx:/data \
+  -e DAEMON_URL=http://admin:admin@host.docker.internal:18332 \
+  -e COIN=BitcoinSegwit \
+  -p 50002:50002 \
+  lukechilds/electrumx
+
+172.17.0.3
+
+docker run \
+--name electrumx-cnt \
+-v /Users/daghan/electrumx:/data \
+-e DAEMON_URL=http://admin:admin@host.docker.internal:8332 \
+-e COIN=BitcoinSegwit \
+-e NET=testnet \
+-e REORG_LIMIT=0 \
+-p 50001:50001 \
+-p 50002:50002 \
+-p 50004:50004 \
+-p 8000:8000 \
+lukechilds/electrumx
+
+
+curl --data-binary '{"jsonrpc":"2.0","id":"curltext","method":"getinfo","params":[]}' http://localhost:8000
+
+
+curl --user admin:admin --data-binary '{"jsonrpc": "1.0", "id": "curltest", "method": "getrpcinfo", "params": []}' -H 'content-type: text/plain;' http://127.0.0.1:8332/
+
+
+git clone https://github.com/kyuupichan/electrumx.git --branch 1.20.2
+
+
+
+        // "bitcoin-php/bitcoin-ecdsa": "^1.1",
+        // "firebase/php-jwt": "^6.4",
+        // "denpa/php-bitcoinrpc": "2.2.0",
+        // "lastguest/murmurhash": "^2.0",
