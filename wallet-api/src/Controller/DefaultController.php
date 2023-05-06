@@ -12,10 +12,10 @@ class DefaultController extends BaseController
     public function getMain(Request $request, Response $response): Response
     {
       $status = [
-        'message'   => 'User Account Api v1.0',
+        'message'   => 'Wallet Api v1.0',
         'version'   => self::API_VERSION,
         'status'    => 'healthy',
-        'timestamp' => time()
+        'timestamp' => time(),
       ];
 
       return $this->jsonResponse($response, 'success', $status, 200);

@@ -16,7 +16,7 @@ RUN wget https://bitcoincore.org/bin/bitcoin-core-24.0.1/bitcoin-24.0.1-aarch64-
     mv bitcoin-24.0.1 bitcoin && \
     rm bitcoin-24.0.1-aarch64-linux-gnu.tar.gz
 
-COPY ./conf/bitcoind/bitcoin.conf /root/
+COPY ./bitcoind-service/bitcoin.conf /root/
 
 RUN mkdir /root/bitcoin/data
 

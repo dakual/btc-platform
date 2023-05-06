@@ -15,7 +15,7 @@ WORKDIR /
 RUN git clone https://github.com/spesmilo/electrumx.git
 RUN cd electrumx && pip3 install .
 
-COPY ./conf/electrumx/init /usr/local/bin
+COPY ./electrumx-service/init /usr/local/bin
 RUN chmod +x /usr/local/bin/init
 
 VOLUME ["/data"]

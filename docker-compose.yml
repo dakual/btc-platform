@@ -7,10 +7,11 @@ services:
       context: .
       dockerfile: account-api/Dockerfile
     image: account-api
+    command: sh -c "composer install && php -S 0.0.0.0:8080 -t /app/public -c php.ini"
     ports:
       - 8080:8080
-    # volumes:
-    #   - ./account-api:/app
+    volumes:
+      - ./account-api:/app
     env_file:
       - .env
 
@@ -20,10 +21,11 @@ services:
       context: .
       dockerfile: wallet-api/Dockerfile
     image: wallet-api
+    command: sh -c "composer install && php -S 0.0.0.0:8080 -t /app/public -c php.ini"
     ports:
       - 8081:8080
-    # volumes:
-    #   - ./account-api:/app
+    volumes:
+      - ./wallet-api:/app
     env_file:
       - .env
 
@@ -31,7 +33,7 @@ services:
   #   container_name: bitcoind
   #   build:
   #     context: .
-  #     dockerfile: ./conf/bitcoind/Dockerfile
+  #     dockerfile: ./bitcoind-service/Dockerfile
   #   image: bitcoind
   #   ports:
   #     - '8332:8332'
@@ -43,7 +45,7 @@ services:
   #   container_name: electrumx
   #   build:
   #     context: .
-  #     dockerfile: ./conf/electrumx/Dockerfile
+  #     dockerfile: ./electrumx-service/Dockerfile
   #   image: electrumx
   #   environment:
   #     - DAEMON_URL=http://admin:admin@bitcoind:8332

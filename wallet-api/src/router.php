@@ -8,9 +8,13 @@ use Slim\Routing\RouteCollectorProxy;
 use App\Controller;
 use App\Handler\ErrorHandler;
 
+use BitWasp\Bitcoin\Network\NetworkFactory;
+use BitWasp\Bitcoin\Bitcoin;
 
 require __DIR__ . '/../vendor/autoload.php';
 
+// Bitcoin Network
+Bitcoin::setNetwork(NetworkFactory::bitcoinTestnet());
 
 $app = AppFactory::create();
 $app->addBodyParsingMiddleware();
@@ -25,18 +29,9 @@ $app->options("[{routes.*}]", function(Request $req, Response $res, array $args)
 $app->get('/', 'App\Controller\DefaultController:getMain');
 
 $app->group('/api', function (RouteCollectorProxy $group) {
-  $group->group('/user', function (RouteCollectorProxy $group) {
-    $group->post('/login', Controller\User\Login::class);
-    $group->get("/logout", Controller\User\Logout::class);
-    $group->post('/create', Controller\User\Create::class);
-  });
-
-  $group->group('/task', function (RouteCollectorProxy $group) {
-    $group->get('', Controller\Task\GetAll::class);
-    $group->post('', Controller\Task\Create::class);
-    $group->get('/{id}', Controller\Task\GetOne::class);
-    $group->put('/{id}', Controller\Task\Update::class);
-    $group->delete('/{id}', Controller\Task\Delete::class);
+  $group->group('/wallet', function (RouteCollectorProxy $group) {
+    $group->get('', Controller\GetWallet::class);
+    $group->post('', Controller\CreateWallet::class);
   })->add(new App\Middleware\Auth());
 });
 
