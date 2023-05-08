@@ -47,7 +47,7 @@ $client = new Client('http://admin:admin@host.docker.internal:18332');
 $privFactory  = new PrivateKeyFactory();
 $privKey      = $privFactory->fromWif($utxoPrivateKey);
 $scriptPubKey = ScriptFactory::scriptPubKey()->payToPubKeyHash($privKey->getPubKeyHash());
-$redeemScript = ScriptFactory::scriptPubKey()->p2wkh($privKey->getPubKeyHash());
+// $redeemScript = ScriptFactory::scriptPubKey()->p2wkh($privKey->getPubKeyHash());
 
 // Transaction
 $addrCreator = new AddressCreator();

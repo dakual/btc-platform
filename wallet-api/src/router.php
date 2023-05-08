@@ -8,13 +8,9 @@ use Slim\Routing\RouteCollectorProxy;
 use App\Controller;
 use App\Handler\ErrorHandler;
 
-use BitWasp\Bitcoin\Network\NetworkFactory;
-use BitWasp\Bitcoin\Bitcoin;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-// Bitcoin Network
-Bitcoin::setNetwork(NetworkFactory::bitcoinTestnet());
 
 $app = AppFactory::create();
 $app->addBodyParsingMiddleware();
@@ -32,6 +28,12 @@ $app->group('/api', function (RouteCollectorProxy $group) {
   $group->group('/wallet', function (RouteCollectorProxy $group) {
     $group->get('', Controller\GetWallet::class);
     $group->post('', Controller\CreateWallet::class);
+  })->add(new App\Middleware\Auth());
+
+  $group->group('/tx', function (RouteCollectorProxy $group) {
+    $group->get('', Controller\GetTransaction::class);
+    $group->post('', Controller\CreateTransaction::class);
+    $group->post('/send', Controller\SendTransaction::class);
   })->add(new App\Middleware\Auth());
 });
 

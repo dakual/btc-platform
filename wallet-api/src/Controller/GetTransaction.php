@@ -5,12 +5,10 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Controller\BaseController;
 use App\Repository\WalletRepository;
-use App\Entity\WalletEntity;
-use App\Utils\Jsonrpc;
 use App\Libs\BitcoinLib;
 
 
-class GetWallet extends BaseController
+class GetTransaction extends BaseController
 {
   private WalletRepository $repository;
 
@@ -31,23 +29,11 @@ class GetWallet extends BaseController
     $data = array();
     if($params["coin"] == 'btc') {
       $bitcoinLib = new BitcoinLib();
-      $wallets    = $this->repository->getWallet($params["coin"], $bitcoinLib->getNetwork(), $userId);
-
-      // Get wallet balance from electrumx
-      $jsonrpc = new Jsonrpc();
-      foreach ($wallets as $key => $value) {
-        $scriptHash = $bitcoinLib->toScriptHash($value->address);
-        $balance    = $jsonrpc->call("blockchain.scripthash.get_balance", array($scriptHash));
-        $wallets[$key]->balance = $balance["result"];
-
-        unset($wallets[$key]->script_hash);
-        unset($wallets[$key]->wif);
-      }
-      $jsonrpc->close();
+      $allTx      = $this->repository->getAllTx($params["coin"], $bitcoinLib->getNetwork(), $userId);
     } else {
       throw new \Exception('The Coin is not supported!', 400);
     }
 
-    return $this->jsonResponse($response, 'success', $wallets, 200);
+    return $this->jsonResponse($response, 'success', $allTx, 200);
   }
 }

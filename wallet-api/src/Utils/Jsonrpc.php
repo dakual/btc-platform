@@ -34,7 +34,10 @@ class Jsonrpc {
       fwrite($this->socket, json_encode($query)."\n");
       $value  = fread($this->socket, 10240);
       $result = json_decode($value, true);
-      $result = $result["result"];
+      if (! isset($result["result"])) {
+        $error = isset($result["error"]) ? $result["error"] : "Unknown!";
+        throw new \Exception("Oops! RPC Error: " . $error, 400);
+      }
       unset($result["id"]);
       unset($result["jsonrpc"]);
     } else {

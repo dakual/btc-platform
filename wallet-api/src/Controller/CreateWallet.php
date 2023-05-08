@@ -6,12 +6,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Controller\BaseController;
 use App\Repository\WalletRepository;
 use App\Entity\WalletEntity;
-
-use BitWasp\Bitcoin\Address\PayToPubKeyHashAddress;
-use BitWasp\Bitcoin\Bitcoin;
-use BitWasp\Bitcoin\Crypto\Random\Random;
-use BitWasp\Bitcoin\Key\Factory\PrivateKeyFactory;
-
+use App\Libs\BitcoinLib;
 
 
 class CreateWallet extends BaseController
@@ -32,19 +27,7 @@ class CreateWallet extends BaseController
     }
 
     if($data->coin == 'btc') {
-      $network    = Bitcoin::getNetwork();
-      $random     = new Random();
-      $pkFactory  = new PrivateKeyFactory();
-      $privateKey = $pkFactory->generateCompressed($random);
-      $publicKey  = $privateKey->getPublicKey();
-      $address    = new PayToPubKeyHashAddress($publicKey->getPubKeyHash());
-
-      // $addrCreator = new AddressCreator();
-      // $addr = $addrCreator->fromString("muzfkNWzWH9SgM6ufpeGbgkRKgZPMJWY3H");
-      $p2pkh = $address->getScriptPubKey()->getHex();
-      $hash  = hash('sha256', hex2bin($p2pkh));
-      preg_match_all('/.{2}/', $hash, $matches, PREG_PATTERN_ORDER, 0);
-      $scriptHash = implode('', array_reverse($matches[0]));
+      $bitcoin = (new BitcoinLib())->newAddress();
     } else {
       throw new \Exception('The Coin is not supported!', 400);
     }
@@ -53,23 +36,22 @@ class CreateWallet extends BaseController
     $wallet = new WalletEntity();
     $wallet->uid        = $this->getUserId($request);
     $wallet->coin       = $data->coin;
-    $wallet->network    = "testnet";
-    $wallet->address    = $address->getAddress();
-    $wallet->wif        = $privateKey->toWif(Bitcoin::getNetwork());
-    $wallet->script_hash= $scriptHash;
+    $wallet->network    = $bitcoin["network"];
+    $wallet->address    = $bitcoin["address"];
+    $wallet->wif        = $bitcoin["wif"];
     $wallet->created_at = $now;
 
-    $wallet = $this->repository->createWallet($wallet);
-    if($wallet <= 0) {
+    $wid = $this->repository->createWallet($wallet);
+    if($wid <= 0) {
       throw new \Exception('Wallet create error!', 400);
     }
 
     $data = array(
       'message' => 'Wallet successfully created!',
       'coin'    => $data->coin,
-      'network' => "testnet",
-      'address' => $address->getAddress(),
-      'walletid'=> $wallet
+      'network' => $bitcoin["network"],
+      'address' => $bitcoin["address"],
+      'wid'     => md5($wid)
     );
 
     return $this->jsonResponse($response, 'success', $data, 200);
