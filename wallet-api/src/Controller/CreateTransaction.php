@@ -49,28 +49,32 @@ class CreateTransaction extends BaseController
 
     $bitcoinLib = new BitcoinLib();
     if($data->coin == 'btc') {
-      $wallet = $this->repository->getWallet($data->coin, $bitcoinLib->getNetwork(), $userId);
+      $wallets = $this->repository->getWallet($data->coin, $bitcoinLib->getNetwork(), $userId);
       
       // Get unspent from electrumx
       $jsonrpc = new Jsonrpc();
-      foreach ($wallet as $key => $value) {
+      foreach ($wallets["wallets"] as $key => $value) {
         $scriptHash = $bitcoinLib->toScriptHash($value->address);
         $unspent    = $jsonrpc->call("blockchain.scripthash.listunspent", array($scriptHash));
-        $wallet[$key]->unspent = $unspent["result"];
+        
+        $wallets["wallets"][$key]->unspent = $unspent["result"];
       }
       $jsonrpc->close();
     } else {
       throw new \Exception('The Coin is not supported!', 400);
     }
 
-    $data = $bitcoinLib->createTx($wallet, $data->address, $data->amount);
+    $data = $bitcoinLib->createTx($wallets, $data->address, $data->amount);
     if(count($data) <= 0) {
       throw new \Exception('Opps! Something went wrong!', 400);
     }
-    $data["uid"]  = $userId;
-    $data["txid"] = md5($this->repository->saveTx($data));
 
-    unset($data["uid"]);
+    $txid = $this->repository->saveTx($data);
+    $data["transaction"] = array_merge(
+      array('tid' => md5($txid)), 
+      $data["transaction"]
+    );
+
     unset($data["tx_id"]);
     unset($data["tx_hex"]);
 

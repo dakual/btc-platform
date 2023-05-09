@@ -7,6 +7,7 @@ use App\Controller\BaseController;
 use App\Repository\WalletRepository;
 use App\Entity\WalletEntity;
 use App\Utils\Jsonrpc;
+use App\Utils\Settings;
 use App\Libs\BitcoinLib;
 
 
@@ -34,14 +35,19 @@ class GetWallet extends BaseController
       $wallets    = $this->repository->getWallet($params["coin"], $bitcoinLib->getNetwork(), $userId);
 
       // Get wallet balance from electrumx
+      $totalConfirmed  = 0;
+      $totalUnonfirmed = 0;
       $jsonrpc = new Jsonrpc();
-      foreach ($wallets as $key => $value) {
+      foreach ($wallets["wallets"] as $key => $value) {
         $scriptHash = $bitcoinLib->toScriptHash($value->address);
         $balance    = $jsonrpc->call("blockchain.scripthash.get_balance", array($scriptHash));
-        $wallets[$key]->balance = $balance["result"];
 
-        unset($wallets[$key]->script_hash);
-        unset($wallets[$key]->wif);
+        $totalConfirmed  += (int) $balance["result"]["confirmed"];
+        $totalUnonfirmed += (int) $balance["result"]["unconfirmed"];
+        $wallets["wallets"][$key]->sh = $scriptHash;
+        $wallets["wallets"][$key]->balance = $balance["result"];
+
+        unset($wallets["wallets"][$key]->wif);
       }
       $jsonrpc->close();
     } else {

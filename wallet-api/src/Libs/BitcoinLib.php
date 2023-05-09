@@ -1,6 +1,7 @@
 <?php
 namespace App\Libs;
 
+use App\Utils\Settings;
 use BitWasp\Bitcoin\Bitcoin;
 use BitWasp\Bitcoin\Address\PayToPubKeyHashAddress;
 use BitWasp\Bitcoin\Crypto\Random\Random;
@@ -11,16 +12,20 @@ use BitWasp\Bitcoin\Script\ScriptFactory;
 use BitWasp\Bitcoin\Transaction\Factory\Signer;
 use BitWasp\Bitcoin\Transaction\TransactionFactory;
 use BitWasp\Bitcoin\Transaction\TransactionOutput;
+use BitWasp\Bitcoin\Script\P2shScript;
+
+
 
 
 class BitcoinLib
 {
+  private $settings;
   private $network;
 
   public function __construct()
   {
-    $networkType = getenv('BTC_NETWORK');
-    if($networkType == 'testnet') {
+    $this->settings = Settings::getSettings();
+    if($this->settings->btc->network == 'testnet') {
       Bitcoin::setNetwork(NetworkFactory::bitcoinTestnet());
     }
     
@@ -72,21 +77,22 @@ class BitcoinLib
     $outputCount = 0;
     $unspentList = [];
     $wallet      = json_decode(json_encode($wallet), true);
+    $wallets     = $wallet["wallets"];
+    $userId      = $wallet["uid"];
 
     try {
       $address = $addrCreator->fromString($address, $network);
-      uasort($wallet, function($item1, $item2){
+      uasort($wallets, function($item1, $item2){
         return strtotime($item2['created_at']) - strtotime($item1['created_at']);
       });
-      $userId                 = $wallet[0]["uid"];
-      $remainingAmountAddress = $wallet[0]["address"];
+      $remainingAmountAddress = $wallets[0]["address"];
       $remainingAmountAddress = $addrCreator->fromString($remainingAmountAddress, $network);
     } catch (\Exception $e) {
       throw new \Exception("Oops! address wrong", 400);
     }
 
     // uspent list
-    foreach ($wallet as $walletItem) {
+    foreach ($wallets as $walletItem) {
       $unspents = (array) $walletItem['unspent'];
       foreach ($unspents as $unspent) {
         $unspent["address"] = $walletItem["address"];
@@ -173,7 +179,7 @@ class BitcoinLib
     if ($outputCount > 1) {
       $builder->payToAddress($totalExtraAmount, $remainingAmountAddress);
     }
-     
+
     // signing
     $unsigned = $builder->get();
     $signer   = new Signer($unsigned, $ecAdapter);
@@ -181,27 +187,29 @@ class BitcoinLib
       $prKey = $privFactory->fromWif($unspent["wif"], $network);
       $p2pkh = ScriptFactory::scriptPubKey()->payToPubKeyHash($prKey->getPubKeyHash());
       $txOut = new TransactionOutput($unspent["value"], $p2pkh);
-
       $signer->sign($unspent["input_index"], $prKey, $txOut);
     }
 
     $signed = $signer->get();
 
     return [
-      "coin"         => "btc",
-      "network"      => self::getNetwork(),
-      "address"      => $address->getAddress(),
-      "input_count"  => $inputCount,
-      "output_count" => $outputCount,
-      "fee"          => $fee,
-      "fee_rate"     => $feeRate,
-      "unspent"      => $totalUnspentAmount,
-      "amount"       => $userWillReceive,
-      "residue"      => $totalExtraAmount,
-      "tx_id"        => $signed->getTxId()->getHex(),
-      "tx_hex"       => $signed->getHex(),
-      "created_at"   => date('Y-m-d\TH:i:s.uP', time()),
-      "status"       => "pending"
+      "uid"          => $wallet["uid"],
+      "coin"         => $wallet["coin"],
+      "network"      => $wallet["network"],
+      "transaction"  => array(
+          "address"      => $address->getAddress(),
+          "input_count"  => $inputCount,
+          "output_count" => $outputCount,
+          "fee"          => $fee,
+          "fee_rate"     => $feeRate,
+          "unspent"      => $totalUnspentAmount,
+          "amount"       => $userWillReceive,
+          "residue"      => $totalExtraAmount,
+          "tx_id"        => $signed->getTxId()->getHex(),
+          "tx_hex"       => $signed->getHex(),
+          "created_at"   => date('Y-m-d\TH:i:s.uP', time()),
+          "status"       => "pending"        
+      )
     ];
   }
 

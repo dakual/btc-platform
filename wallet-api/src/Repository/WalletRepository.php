@@ -8,7 +8,7 @@ class WalletRepository extends BaseRepository
   public function getWallet(string $coin, string $network, string $userId): Array
   {
     $query = '
-        SELECT md5(w.id) wid, w.uid, w.coin, w.network, w.address, w.wif, w.created_at FROM `wallets` w 
+        SELECT md5(w.id) wid, w.address, w.wif, w.created_at FROM `wallets` w 
         WHERE w.uid = :uid AND w.coin = :coin AND w.network = :network
     ';
     $statement = $this->getDb()->prepare($query);
@@ -22,7 +22,12 @@ class WalletRepository extends BaseRepository
         throw new \Exception('Wallet not found.', 404);
     }
 
-    return $wallets;
+    return [
+      "uid"     => $userId,
+      "coin"    => $coin,
+      "network" => $network,
+      "wallets" => $wallets
+    ];
   }
 
   public function createWallet(WalletEntity $wallet): int
@@ -56,23 +61,24 @@ class WalletRepository extends BaseRepository
         VALUES 
           (:uid, :coin, :network, :address, :input_count, :output_count, :fee, :fee_rate, :unspent, :amount, :residue, :tx_id, :tx_hex, :created_at, :status);
     ';
+    $rs = $tx["transaction"];
 
     $statement = $this->getDb()->prepare($query);
     $statement->bindParam('uid', $tx["uid"]);
     $statement->bindParam('coin', $tx["coin"]);
     $statement->bindParam('network', $tx["network"]);
-    $statement->bindParam('address', $tx["address"]);
-    $statement->bindParam('input_count', $tx["input_count"]);
-    $statement->bindParam('output_count', $tx["output_count"]);
-    $statement->bindParam('fee', $tx["fee"]);
-    $statement->bindParam('fee_rate', $tx["fee_rate"]);
-    $statement->bindParam('unspent', $tx["unspent"]);
-    $statement->bindParam('amount', $tx["amount"]);
-    $statement->bindParam('residue', $tx["residue"]);
-    $statement->bindParam('tx_id', $tx["tx_id"]);
-    $statement->bindParam('tx_hex', $tx["tx_hex"]);
-    $statement->bindParam('created_at', $tx["created_at"]);
-    $statement->bindParam('status', $tx["status"]);
+    $statement->bindParam('address', $rs["address"]);
+    $statement->bindParam('input_count', $rs["input_count"]);
+    $statement->bindParam('output_count', $rs["output_count"]);
+    $statement->bindParam('fee', $rs["fee"]);
+    $statement->bindParam('fee_rate', $rs["fee_rate"]);
+    $statement->bindParam('unspent', $rs["unspent"]);
+    $statement->bindParam('amount', $rs["amount"]);
+    $statement->bindParam('residue', $rs["residue"]);
+    $statement->bindParam('tx_id', $rs["tx_id"]);
+    $statement->bindParam('tx_hex', $rs["tx_hex"]);
+    $statement->bindParam('created_at', $rs["created_at"]);
+    $statement->bindParam('status', $rs["status"]);
     $statement->execute();
 
     return (int)$this->database->lastInsertId();
@@ -117,7 +123,7 @@ class WalletRepository extends BaseRepository
   public function getAllTx(string $coin, string $network, string $userId): Array
   {
     $query = '
-        SELECT md5(id) tid, `uid`, `coin`, `network`, `address`, `input_count`, `output_count`, `fee`, `fee_rate`, `unspent`, `amount`, `residue`, `tx_id`, `tx_hex`, `created_at`, `updated_at`, `status` FROM 
+        SELECT md5(id) tid, `address`, `amount`, `fee`, `tx_id`, `created_at`, `updated_at`, `status` FROM 
           `transactions` t 
         WHERE 
           t.uid = :uid AND t.coin = :coin AND t.network = :network
@@ -133,6 +139,11 @@ class WalletRepository extends BaseRepository
       throw new \Exception('Wallet not found.', 404);
     }
 
-    return $allTx;
+    return [
+      "uid"     => $userId,
+      "coin"    => $coin,
+      "network" => $network,
+      "transactions" => $allTx
+    ];
   }
 }

@@ -1,6 +1,7 @@
 <?php
 namespace App\Middleware;
 
+use App\Utils\Settings;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 use Slim\Psr7\Response;
@@ -9,11 +10,11 @@ use Firebase\JWT\Key;
 
 class Auth
 {
-  private $jwtPublicKey;
+  public $settings;
 
   public function __construct()
   {
-    $this->jwtPublicKey = getenv('JWT_PUBLIC_KEY');
+    $this->settings = Settings::getSettings();
   }
 
   public function __invoke(Request $request, RequestHandler $handler): Response
@@ -38,7 +39,7 @@ class Auth
   private function checkToken(string $token): object
   {
     try {
-      return JWT::decode($token, new Key($this->jwtPublicKey, 'RS256'));
+      return JWT::decode($token, new Key($this->settings->jwt->public_key, 'RS256'));
     } catch (\Exception $ex) {
       throw new \Exception('Forbidden: you are not authorized.', 403);
     }
