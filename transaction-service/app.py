@@ -7,8 +7,8 @@ host = 'electrum.blockstream.info'
 
 content = {
     "jsonrpc": "2.0",
-    "method": "blockchain.scripthash.get_history",
-    "params": ["9f02d2618613d621f1a7534497e28c2ad2e35a23e812833d3f26c1fa102b6316"],
+    "method": "blockchain.headers.subscribe",
+    "params": [],
     "id": 0
 }
 

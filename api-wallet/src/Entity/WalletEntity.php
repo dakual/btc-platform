@@ -3,7 +3,7 @@ namespace App\Entity;
 
 class WalletEntity
 {
-  public int $id;
+  public string $wid;
   public string $uid;
   public string $coin;
   public string $network;

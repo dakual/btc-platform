@@ -100,7 +100,7 @@ class BitcoinLib
         $unspentList[]  = (array) $unspent;
       }
     }
-    
+
     // calculate total unspent amount
     $totalUnspentAmount  = 0;
     $totalUnspentAmount += array_sum(array_column($unspentList, 'value'));

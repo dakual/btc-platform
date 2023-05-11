@@ -37,6 +37,7 @@ class GetWallet extends BaseController
       // Get wallet balance from electrumx
       $totalConfirmed  = 0;
       $totalUnonfirmed = 0;
+
       $jsonrpc = new Jsonrpc();
       foreach ($wallets["wallets"] as $key => $value) {
         $scriptHash = $bitcoinLib->toScriptHash($value->address);
@@ -44,8 +45,8 @@ class GetWallet extends BaseController
 
         $totalConfirmed  += (int) $balance["result"]["confirmed"];
         $totalUnonfirmed += (int) $balance["result"]["unconfirmed"];
-        $wallets["wallets"][$key]->sh = $scriptHash;
         $wallets["wallets"][$key]->balance = $balance["result"];
+        $wallets["wallets"][$key]->scripthash = $scriptHash; // will removed
 
         unset($wallets["wallets"][$key]->wif);
       }

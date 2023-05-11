@@ -41,28 +41,28 @@ class SendTransaction extends BaseController
 
     $tx = $this->repository->getTx($userId, $params->txid);
     if($tx["status"] != 'pending') {
-      throw new \Exception('Transaction is used. Please create new Transaction!', 400);
+      throw new \Exception('Transaction is used!', 400);
     }
 
     if($tx["coin"] == 'btc') {
       try {
         $jsonrpc = new Jsonrpc();
-        $tx_resp = $jsonrpc->call("blockchain.transaction.broadcast", array($tx["tx_hex"]));
+        $tx_resp = $jsonrpc->call("blockchain.transaction.broadcast", array($tx["hex"]));
         $jsonrpc->close();
         
-        if (strcmp($tx_resp["result"], $tx["tx_id"]) !== 0) {
+        if (strcmp($tx_resp["result"], $tx["tid"]) !== 0) {
           throw new \Exception('Opps! Something went wrong!', 400);
         }
+
+        $this->repository->updateTx($userId, $params->txid, 'completed');
+        $data = [
+          "result" => "success",
+          "txid"   => $tx_resp["result"]
+        ];
       } catch(\Exception $ex) {
         $this->repository->updateTx($userId, $params->txid, 'faild');
         throw new \Exception($ex->getMessage(), 400);
       }
-      
-      $this->repository->updateTx($userId, $params->txid, 'completed');
-      $data = [
-        "result" => "success",
-        "txid"   => $tx_resp["result"]
-      ];
     } else {
       throw new \Exception('The Coin is not supported!', 400);
     }

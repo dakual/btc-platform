@@ -8,8 +8,10 @@ class WalletRepository extends BaseRepository
   public function getWallet(string $coin, string $network, string $userId): Array
   {
     $query = '
-        SELECT md5(w.id) wid, w.address, w.wif, w.created_at FROM `wallets` w 
-        WHERE w.uid = :uid AND w.coin = :coin AND w.network = :network
+        SELECT md5(w.id) AS wid, w.address, w.wif, w.created_at 
+        FROM `wallets` w 
+        WHERE w.uid = :uid AND w.coin = :coin AND w.network = :network 
+        ORDER BY w.created_at DESC
     ';
     $statement = $this->getDb()->prepare($query);
     $statement->bindParam('uid', $userId);
@@ -53,45 +55,38 @@ class WalletRepository extends BaseRepository
     return $walletId;
   }
 
-  public function saveTx(array $tx): int
+  public function saveTx(array $tx): void
   {
     $query = '
         INSERT INTO `transactions` 
-          (`uid`, `coin`, `network`, `address`, `input_count`, `output_count`, `fee`, `fee_rate`, `unspent`, `amount`, `residue`, `tx_id`, `tx_hex`, `created_at`, `status`) 
+          (`tid`, `uid`, `coin`, `network`, `address`, `fee`, `amount`, `hex`, `created_at`, `status`) 
         VALUES 
-          (:uid, :coin, :network, :address, :input_count, :output_count, :fee, :fee_rate, :unspent, :amount, :residue, :tx_id, :tx_hex, :created_at, :status);
+          (:tid, :uid, :coin, :network, :address, :fee, :amount, :hex, :created_at, :status);
     ';
     $rs = $tx["transaction"];
 
     $statement = $this->getDb()->prepare($query);
+    $statement->bindParam('tid', $rs["tx_id"]);
     $statement->bindParam('uid', $tx["uid"]);
     $statement->bindParam('coin', $tx["coin"]);
     $statement->bindParam('network', $tx["network"]);
     $statement->bindParam('address', $rs["address"]);
-    $statement->bindParam('input_count', $rs["input_count"]);
-    $statement->bindParam('output_count', $rs["output_count"]);
     $statement->bindParam('fee', $rs["fee"]);
-    $statement->bindParam('fee_rate', $rs["fee_rate"]);
-    $statement->bindParam('unspent', $rs["unspent"]);
     $statement->bindParam('amount', $rs["amount"]);
-    $statement->bindParam('residue', $rs["residue"]);
-    $statement->bindParam('tx_id', $rs["tx_id"]);
-    $statement->bindParam('tx_hex', $rs["tx_hex"]);
+    $statement->bindParam('hex', $rs["tx_hex"]);
     $statement->bindParam('created_at', $rs["created_at"]);
     $statement->bindParam('status', $rs["status"]);
     $statement->execute();
-
-    return (int)$this->database->lastInsertId();
   }
 
-  public function getTx(string $uid, string $txid): array
+  public function getTx(string $uid, string $tid): array
   {
     $query = '
-        SELECT * FROM `transactions` WHERE md5(id) = :id AND `uid` = :uid
+        SELECT * FROM `transactions` WHERE tid = :tid AND `uid` = :uid
     ';
 
     $statement = $this->getDb()->prepare($query);
-    $statement->bindParam('id', $txid);
+    $statement->bindParam('tid', $tid);
     $statement->bindParam('uid', $uid);
     $statement->execute();
 
@@ -103,19 +98,19 @@ class WalletRepository extends BaseRepository
     return $tx;
   }
 
-  public function updateTx(string $uid, string $txid, string $status): void
+  public function updateTx(string $uid, string $tid, string $status): void
   {
     $now   = date('Y-m-d\TH:i:s.uP', time());
     $query = '
         UPDATE `transactions` 
         SET `status` = :status, `updated_at` = :updated_at 
-        WHERE md5(id) = :id AND `uid` = :uid
+        WHERE tid = :tid AND `uid` = :uid
     ';
 
     $statement = $this->getDb()->prepare($query);
     $statement->bindParam('status', $status);
     $statement->bindParam('updated_at', $now);
-    $statement->bindParam('id', $txid);
+    $statement->bindParam('tid', $tid);
     $statement->bindParam('uid', $uid);
     $statement->execute();
   }
@@ -123,10 +118,11 @@ class WalletRepository extends BaseRepository
   public function getAllTx(string $coin, string $network, string $userId): Array
   {
     $query = '
-        SELECT md5(id) tid, `address`, `amount`, `fee`, `tx_id`, `created_at`, `updated_at`, `status` FROM 
+        SELECT `tid`, `address`, `amount`, `fee`, `created_at`, `updated_at`, `status` FROM 
           `transactions` t 
         WHERE 
-          t.uid = :uid AND t.coin = :coin AND t.network = :network
+          t.uid = :uid AND t.coin = :coin AND t.network = :network 
+        ORDER BY `created_at` DESC
     ';
     $statement = $this->getDb()->prepare($query);
     $statement->bindParam('uid', $userId);
@@ -146,4 +142,5 @@ class WalletRepository extends BaseRepository
       "transactions" => $allTx
     ];
   }
+
 }

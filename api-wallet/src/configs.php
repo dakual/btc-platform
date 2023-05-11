@@ -18,7 +18,13 @@ $settings = [
   // BTC SETTINGS
   'btc' => [
     'network' => getenv('BTC_NETWORK')
-  ]
+  ],
+  // ELECTRUMX SETTINGS
+  'elx' => [
+    'host'     => getenv('ELECTRUMX_HOST'),
+    'port'     => getenv('ELECTRUMX_PORT'),
+    'protocol' => getenv('ELECTRUMX_PROTOCOL')
+  ],
 ];
 
 return json_decode(json_encode($settings), FALSE);

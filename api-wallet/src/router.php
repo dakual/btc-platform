@@ -31,6 +31,7 @@ $app->group('/api', function (RouteCollectorProxy $group) {
   })->add(new App\Middleware\Auth());
 
   $group->group('/tx', function (RouteCollectorProxy $group) {
+    $group->get('/{id}', Controller\GetTransactionDetail::class);
     $group->get('', Controller\GetTransaction::class);
     $group->post('', Controller\CreateTransaction::class);
     $group->post('/send', Controller\SendTransaction::class);

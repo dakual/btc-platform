@@ -69,14 +69,24 @@ class CreateTransaction extends BaseController
       throw new \Exception('Opps! Something went wrong!', 400);
     }
 
-    $txid = $this->repository->saveTx($data);
+    try {
+      $this->repository->saveTx($data);
+    } catch(\Exception $ex) {
+      //throw new \Exception('Opps! This transaction has already exist!', 400);
+    }
+    
     $data["transaction"] = array_merge(
-      array('tid' => md5($txid)), 
+      array('tid' => $data["transaction"]["tx_id"]), 
       $data["transaction"]
     );
 
-    unset($data["tx_id"]);
-    unset($data["tx_hex"]);
+    unset($data["transaction"]["tx_id"]);
+    unset($data["transaction"]["tx_hex"]);
+    unset($data["transaction"]["input_count"]);
+    unset($data["transaction"]["output_count"]);
+    unset($data["transaction"]["fee_rate"]);
+    unset($data["transaction"]["unspent"]);
+    unset($data["transaction"]["residue"]);
 
     return $this->jsonResponse($response, 'success', $data, 200);
   }
