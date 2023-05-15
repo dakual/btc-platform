@@ -27,7 +27,7 @@ class Login extends BaseController
   {
     $data = (array) $request->getParsedBody();
     if (empty($data) || !isset($data['username']) || !isset($data['password'])) {
-      throw new \App\Exception\Auth(
+      throw new \Exception(
         'Login failed: Username and Password required!', 400
       );
     }
@@ -36,7 +36,7 @@ class Login extends BaseController
 
     $user = $this->repository->loginUser($username, $password);
     if (! password_verify($password, $user->password)) {
-      throw new \App\Exception\Auth(
+      throw new \Exception(
         'Login failed: Username or password incorrect!', 400
       );
     }
@@ -53,7 +53,7 @@ class Login extends BaseController
 
     $data = array(
       'message' => 'Login Successfull',
-      'token'   => 'Bearer ' . $jwt
+      'token'   => $jwt
     );
 
     $response = $this->setJwtCookie($request, $response, $jwt);

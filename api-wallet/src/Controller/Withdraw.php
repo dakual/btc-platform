@@ -19,7 +19,7 @@ use BitWasp\Bitcoin\Transaction\TransactionFactory;
 use BitWasp\Bitcoin\Transaction\TransactionOutput;
 
 
-class SendTransaction extends BaseController
+class Withdraw extends BaseController
 {
   private WalletRepository $repository;
 
@@ -39,12 +39,12 @@ class SendTransaction extends BaseController
       throw new \Exception('The field "TX ID" is required.', 400);
     }
 
-    $tx = $this->repository->getTx($userId, $params->txid);
+    $tx = $this->repository->getWithdraw($userId, $params->txid);
     if($tx["status"] != 'pending') {
-      throw new \Exception('Transaction is used!', 400);
+      throw new \Exception('Transaction is expired!', 400);
     }
 
-    if($tx["coin"] == 'btc') {
+    if($tx["currency"] == 'btc') {
       try {
         $jsonrpc = new Jsonrpc();
         $tx_resp = $jsonrpc->call("blockchain.transaction.broadcast", array($tx["hex"]));
@@ -54,13 +54,13 @@ class SendTransaction extends BaseController
           throw new \Exception('Opps! Something went wrong!', 400);
         }
 
-        $this->repository->updateTx($userId, $params->txid, 'completed');
+        $this->repository->updateWithdraw($userId, $params->txid, 'completed');
         $data = [
           "result" => "success",
           "txid"   => $tx_resp["result"]
         ];
       } catch(\Exception $ex) {
-        $this->repository->updateTx($userId, $params->txid, 'faild');
+        $this->repository->updateWithdraw($userId, $params->txid, 'faild');
         throw new \Exception($ex->getMessage(), 400);
       }
     } else {

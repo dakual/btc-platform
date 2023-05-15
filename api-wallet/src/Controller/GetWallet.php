@@ -25,14 +25,14 @@ class GetWallet extends BaseController
     $userId = $this->getUserId($request);
     $params = $request->getQueryParams();
 
-    if(! isset($params["coin"])) {
-      throw new \Exception('The field "Coin Type" is required.', 400);
+    if(! isset($params["currency"])) {
+      throw new \Exception('The field "Currency" is required.', 400);
     }
 
     $data = array();
-    if($params["coin"] == 'btc') {
+    if($params["currency"] == 'btc') {
       $bitcoinLib = new BitcoinLib();
-      $wallets    = $this->repository->getWallet($params["coin"], $bitcoinLib->getNetwork(), $userId);
+      $wallets    = $this->repository->getWallet($params["currency"], $bitcoinLib->getNetwork(), $userId);
 
       // Get wallet balance from electrumx
       $totalConfirmed  = 0;
@@ -46,13 +46,16 @@ class GetWallet extends BaseController
         $totalConfirmed  += (int) $balance["result"]["confirmed"];
         $totalUnonfirmed += (int) $balance["result"]["unconfirmed"];
         $wallets["wallets"][$key]->balance = $balance["result"];
-        $wallets["wallets"][$key]->scripthash = $scriptHash; // will removed
+        // $wallets["wallets"][$key]->scripthash = $scriptHash; // will removed
 
         unset($wallets["wallets"][$key]->wif);
       }
       $jsonrpc->close();
+
+      $wallets["totalConfirmed"]  = $totalConfirmed;
+      $wallets["totalUnonfirmed"] = $totalUnonfirmed;
     } else {
-      throw new \Exception('The Coin is not supported!', 400);
+      throw new \Exception('The Currency is not supported!', 400);
     }
 
     return $this->jsonResponse($response, 'success', $wallets, 200);

@@ -21,12 +21,12 @@ class Auth
   {
     $jwtHeader = $request->getHeaderLine('Authorization');
     if (! $jwtHeader) {
-      throw new \Exception('JWT Token required.', 400);
+      throw new \Exception('Token required.', 401);
     }
 
     $jwt = explode('Bearer ', $jwtHeader);
     if (! isset($jwt[1])) {
-      throw new \Exception('JWT Token invalid.', 400);
+      throw new \Exception('Token invalid.', 401);
     }
 
     $decoded  = $this->checkToken($jwt[1]);
@@ -41,7 +41,7 @@ class Auth
     try {
       return JWT::decode($token, new Key($this->settings->jwt->public_key, 'RS256'));
     } catch (\Exception $ex) {
-      throw new \Exception('Forbidden: you are not authorized.', 403);
+      throw new \Exception('You are not authorized.', 401);
     }
   }
 }

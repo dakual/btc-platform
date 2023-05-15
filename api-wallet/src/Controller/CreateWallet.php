@@ -22,20 +22,20 @@ class CreateWallet extends BaseController
   {
     $data = (array) $request->getParsedBody();
     $data = json_decode(json_encode($data), false);
-    if(! isset($data->coin)) {
-      throw new \Exception('The field "Coin Type" is required.', 400);
+    if(! isset($data->currency)) {
+      throw new \Exception('The field "Currency" is required.', 400);
     }
 
-    if($data->coin == 'btc') {
+    if($data->currency == 'btc') {
       $bitcoin = (new BitcoinLib())->newAddress();
     } else {
-      throw new \Exception('The Coin is not supported!', 400);
+      throw new \Exception('The Currency is not supported!', 400);
     }
 
     $now    = date('Y-m-d\TH:i:s.uP', time());
     $wallet = new WalletEntity();
     $wallet->uid        = $this->getUserId($request);
-    $wallet->coin       = $data->coin;
+    $wallet->currency   = $data->currency;
     $wallet->network    = $bitcoin["network"];
     $wallet->address    = $bitcoin["address"];
     $wallet->wif        = $bitcoin["wif"];
@@ -47,11 +47,11 @@ class CreateWallet extends BaseController
     }
 
     $data = array(
-      'message' => 'Wallet successfully created!',
-      'coin'    => $data->coin,
-      'network' => $bitcoin["network"],
-      'address' => $bitcoin["address"],
-      'wid'     => md5($wid)
+      'message'  => 'Wallet successfully created!',
+      'currency' => $data->currency,
+      'network'  => $bitcoin["network"],
+      'address'  => $bitcoin["address"],
+      'wid'      => md5($wid)
     );
 
     return $this->jsonResponse($response, 'success', $data, 200);

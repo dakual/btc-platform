@@ -29,6 +29,19 @@ services:
     env_file:
       - .env
 
+  # ft-user:
+  #   container_name: ft-user
+  #   build:
+  #     context: .
+  #     dockerfile: ft-user/Dockerfile
+  #   image: ft-user
+  #   ports:
+  #     - 80:80
+  #   volumes:
+  #     - ./ft-user:/app
+  #   env_file:
+  #     - .env
+
   svc-bitcoind:
     container_name: svc-bitcoind
     build:
@@ -61,3 +74,32 @@ services:
       - /Users/daghan/electrumx:/data
     depends_on:
       - svc-bitcoind
+
+  db-myadmin:
+    image: arm64v8/phpmyadmin:latest
+    container_name: db-myadmin
+    ports:
+      - "1080:80"
+    environment:
+      - PMA_HOST=db-mysql
+      - PMA_PORT=3306
+    depends_on:
+      - db-mysql
+
+  db-mysql:
+    image: arm64v8/mysql:8
+    container_name: db-mysql
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - bitcoin-db-data:/var/lib/mysql
+      - ./bitcoin.sql:/docker-entrypoint-initdb.d/dump.sql
+    env_file:
+      - ".env"
+    environment:
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+
+volumes:
+  bitcoin-db-data:

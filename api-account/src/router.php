@@ -21,7 +21,20 @@ $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 $errorHandler    = new ErrorHandler($app->getCallableResolver(), $app->getResponseFactory());
 $errorMiddleware->setDefaultErrorHandler($errorHandler);
 
-$app->options("[{routes.*}]", function(Request $req, Response $res, array $args) :Response { return $res; });
+$app->options('/{routes:.+}', function ($request, $response, $args) {
+  return $response;
+});
+
+$app->add(function ($request, $handler) {
+  $response = $handler->handle($request);
+  return $response
+          ->withHeader('Access-Control-Allow-Origin', 'http://localhost:3000')
+          ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
+          ->withHeader('Access-Control-Allow-Credentials', 'true')
+          ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+});
+
+
 $app->get('/', 'App\Controller\DefaultController:getMain');
 
 $app->group('/api', function (RouteCollectorProxy $group) {

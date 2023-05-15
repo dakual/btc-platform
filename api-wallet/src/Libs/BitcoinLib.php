@@ -2,6 +2,7 @@
 namespace App\Libs;
 
 use App\Utils\Settings;
+use App\Utils\Jsonrpc;
 use BitWasp\Bitcoin\Bitcoin;
 use BitWasp\Bitcoin\Address\PayToPubKeyHashAddress;
 use BitWasp\Bitcoin\Crypto\Random\Random;
@@ -13,9 +14,8 @@ use BitWasp\Bitcoin\Transaction\Factory\Signer;
 use BitWasp\Bitcoin\Transaction\TransactionFactory;
 use BitWasp\Bitcoin\Transaction\TransactionOutput;
 use BitWasp\Bitcoin\Script\P2shScript;
-
-
-
+use BitWasp\Bitcoin\Amount;
+use BitWasp\Buffertools\Buffertools;
 
 class BitcoinLib
 {
@@ -110,11 +110,8 @@ class BitcoinLib
 
     // sort unspent list
     usort($unspentList, function ($item1, $item2) {
-      $item1 = (array) $item1;
-      $item2 = (array) $item2;
       return $item1['value'] <=> $item2['value'];
     });
-
 
     // select unspent from list
     $selectedUnspents = [];
@@ -131,8 +128,6 @@ class BitcoinLib
     
     if (empty($selectedUnspents)) {
       usort($unspentList, function ($item1, $item2) {
-        $item1 = (array) $item1;
-        $item2 = (array) $item2;
         return $item2['value'] <=> $item1['value'];
       });
 
@@ -149,7 +144,7 @@ class BitcoinLib
       $totalUnspentAmount = $selectedAmounts;
     }
     $unspentList = $selectedUnspents;
-
+    
     // set output count
     if ($totalUnspentAmount == $amount) {
       $outputCount = 1;
@@ -173,7 +168,7 @@ class BitcoinLib
       $unspent["input_index"] = $inputIndex;
       $inputIndex++;
     }
-
+  
     // prepare output
     $builder->payToAddress($userWillReceive, $address);
     if ($outputCount > 1) {
@@ -183,18 +178,18 @@ class BitcoinLib
     // signing
     $unsigned = $builder->get();
     $signer   = new Signer($unsigned, $ecAdapter);
-    foreach ($unspentList as $unspent) {
-      $prKey = $privFactory->fromWif($unspent["wif"], $network);
+    foreach ($unspentList as $item) {
+      $prKey = $privFactory->fromWif($item["wif"], $network);
       $p2pkh = ScriptFactory::scriptPubKey()->payToPubKeyHash($prKey->getPubKeyHash());
-      $txOut = new TransactionOutput($unspent["value"], $p2pkh);
-      $signer->sign($unspent["input_index"], $prKey, $txOut);
+      $txOut = new TransactionOutput($item["value"], $p2pkh);
+
+      $signer->sign($item["input_index"], $prKey, $txOut);
     }
 
     $signed = $signer->get();
-
     return [
       "uid"          => $wallet["uid"],
-      "coin"         => $wallet["coin"],
+      "currency"     => $wallet["currency"],
       "network"      => $wallet["network"],
       "transaction"  => array(
           "address"      => $address->getAddress(),
@@ -211,6 +206,54 @@ class BitcoinLib
           "status"       => "pending"        
       )
     ];
+  }
+
+  public function decodeRaw($raw, $verbose = false): array
+  {
+    $ecAdapter   = Bitcoin::getEcAdapter();
+    $addrCreator = new AddressCreator($ecAdapter);
+    $jsonrpc     = new Jsonrpc();
+    $amount      = new Amount();
+
+    $tx = TransactionFactory::fromHex($raw);
+    $result['txid']  = $tx->getTxId()->getHex();
+    $result['value'] = (int)$tx->getValueOut(); // $amount->toBtc($tx->getValueOut());
+    $result['version'] = $tx->getVersion();
+    $result['nIn'] = count($tx->getInputs());
+    $result['nOut'] = count($tx->getOutputs());
+    foreach ($tx->getInputs() as $key => $input) 
+    {
+      $txid = $input->getOutPoint()->getTxId()->getHex();
+      $vout = $input->getOutPoint()->getVout();
+
+      $result['inputs'][$key]['txid']   = $txid;
+      $result['inputs'][$key]['vout']   = $vout;
+      $result['inputs'][$key]['script'] = $input->getScript()->getHex();
+
+      if($verbose) {
+        $hex = $jsonrpc->call("blockchain.transaction.get", array($txid, false));
+        $hex = $hex["result"];
+        $inputTx = TransactionFactory::fromHex($hex);
+        foreach ($inputTx->getOutputs() as $k => $o) 
+        {
+          $result['inputs'][$key]['address'] = $addrCreator->fromOutputScript($o->getScript())->getAddress();
+          $result['inputs'][$key]['value'] = (int)$o->getValue(); // $amount->toBtc($o->getValue());
+        }
+      }
+    }
+
+    foreach ($tx->getOutputs() as $key => $output) 
+    {
+      try {
+        $result['outputs'][$key]['address'] = $addrCreator->fromOutputScript($output->getScript())->getAddress();
+      } catch (\Exception $e) {
+        $result['outputs'][$key]['address'] = 'Newly Generated Coins';
+      }
+      $result['outputs'][$key]['script'] = $output->getScript()->getHex();
+      $result['outputs'][$key]['value'] = (int)$output->getValue(); // $amount->toBtc($output->getValue());
+    }
+
+    return $result;
   }
 
 }

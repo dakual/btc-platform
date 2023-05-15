@@ -9,18 +9,9 @@ use App\Entity\WalletEntity;
 use App\Utils\Jsonrpc;
 use App\Libs\BitcoinLib;
 
-use BitWasp\Bitcoin\Address\AddressCreator;
-use BitWasp\Bitcoin\Bitcoin;
-use BitWasp\Bitcoin\Key\Factory\PrivateKeyFactory;
-use BitWasp\Bitcoin\Network\NetworkFactory;
-use BitWasp\Bitcoin\Script\ScriptFactory;
-use BitWasp\Bitcoin\Transaction\Factory\Signer;
-use BitWasp\Bitcoin\Transaction\TransactionFactory;
-use BitWasp\Bitcoin\Transaction\TransactionOutput;
 
 
-
-class CreateTransaction extends BaseController
+class CreateWithdraw extends BaseController
 {
   private WalletRepository $repository;
 
@@ -35,8 +26,8 @@ class CreateTransaction extends BaseController
     $data   = (array) $request->getParsedBody();
     $data   = json_decode(json_encode($data), false);
 
-    if(! isset($data->coin)) {
-      throw new \Exception('The field "Coin Type" is required.', 400);
+    if(! isset($data->currency)) {
+      throw new \Exception('The field "Currency" is required.', 400);
     }
 
     if(! isset($data->address)) {
@@ -48,8 +39,8 @@ class CreateTransaction extends BaseController
     }
 
     $bitcoinLib = new BitcoinLib();
-    if($data->coin == 'btc') {
-      $wallets = $this->repository->getWallet($data->coin, $bitcoinLib->getNetwork(), $userId);
+    if($data->currency == 'btc') {
+      $wallets = $this->repository->getWallet($data->currency, $bitcoinLib->getNetwork(), $userId);
       
       // Get unspent from electrumx
       $jsonrpc = new Jsonrpc();
@@ -61,7 +52,7 @@ class CreateTransaction extends BaseController
       }
       $jsonrpc->close();
     } else {
-      throw new \Exception('The Coin is not supported!', 400);
+      throw new \Exception('The currency is not supported!', 400);
     }
 
     $data = $bitcoinLib->createTx($wallets, $data->address, $data->amount);
@@ -70,9 +61,9 @@ class CreateTransaction extends BaseController
     }
 
     try {
-      $this->repository->saveTx($data);
+      $this->repository->saveWithdraw($data);
     } catch(\Exception $ex) {
-      //throw new \Exception('Opps! This transaction has already exist!', 400);
+      throw new \Exception('Opps! Transaction has already exist!', 400);
     }
     
     $data["transaction"] = array_merge(

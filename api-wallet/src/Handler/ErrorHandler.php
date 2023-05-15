@@ -54,8 +54,8 @@ class ErrorHandler implements ErrorHandlerInterface
     );
 
     return $response
-      ->withStatus($this->getHttpStatusCode($exception))
-      ->withHeader('Content-type', 'application/problem+json');
+      ->withStatus(200)
+      ->withHeader('Content-type', 'application/problem+json'); // $this->getHttpStatusCode($exception)
   }
 
   private function getHttpStatusCode(Throwable $exception): int

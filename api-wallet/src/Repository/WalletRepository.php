@@ -5,17 +5,17 @@ use App\Entity\WalletEntity;
 
 class WalletRepository extends BaseRepository
 {
-  public function getWallet(string $coin, string $network, string $userId): Array
+  public function getWallet(string $currency, string $network, string $userId): Array
   {
     $query = '
         SELECT md5(w.id) AS wid, w.address, w.wif, w.created_at 
         FROM `wallets` w 
-        WHERE w.uid = :uid AND w.coin = :coin AND w.network = :network 
+        WHERE w.uid = :uid AND w.currency = :currency AND w.network = :network 
         ORDER BY w.created_at DESC
     ';
     $statement = $this->getDb()->prepare($query);
     $statement->bindParam('uid', $userId);
-    $statement->bindParam('coin', $coin);
+    $statement->bindParam('currency', $currency);
     $statement->bindParam('network', $network);
     $statement->execute();
 
@@ -25,10 +25,10 @@ class WalletRepository extends BaseRepository
     }
 
     return [
-      "uid"     => $userId,
-      "coin"    => $coin,
-      "network" => $network,
-      "wallets" => $wallets
+      "uid"      => $userId,
+      "currency" => $currency,
+      "network"  => $network,
+      "wallets"  => $wallets
     ];
   }
 
@@ -36,14 +36,14 @@ class WalletRepository extends BaseRepository
   {
     $wallet_query = '
         INSERT INTO `wallets`
-          (`uid`, `coin`, `network`, `address`, `wif`, `created_at`)
+          (`uid`, `currency`, `network`, `address`, `wif`, `created_at`)
         VALUES
-          (:uid, :coin, :network, :address, :wif, :created_at)
+          (:uid, :currency, :network, :address, :wif, :created_at)
     ';
 
     $statement = $this->getDb()->prepare($wallet_query);
     $statement->bindParam('uid', $wallet->uid);
-    $statement->bindParam('coin', $wallet->coin);
+    $statement->bindParam('currency', $wallet->currency);
     $statement->bindParam('network', $wallet->network);
     $statement->bindParam('address', $wallet->address);
     $statement->bindParam('wif', $wallet->wif);
@@ -55,20 +55,20 @@ class WalletRepository extends BaseRepository
     return $walletId;
   }
 
-  public function saveTx(array $tx): void
+  public function saveWithdraw(array $tx): void
   {
     $query = '
-        INSERT INTO `transactions` 
-          (`tid`, `uid`, `coin`, `network`, `address`, `fee`, `amount`, `hex`, `created_at`, `status`) 
+        INSERT INTO `withdraws` 
+          (`tid`, `uid`, `currency`, `network`, `address`, `fee`, `amount`, `hex`, `created_at`, `status`) 
         VALUES 
-          (:tid, :uid, :coin, :network, :address, :fee, :amount, :hex, :created_at, :status);
+          (:tid, :uid, :currency, :network, :address, :fee, :amount, :hex, :created_at, :status);
     ';
     $rs = $tx["transaction"];
 
     $statement = $this->getDb()->prepare($query);
     $statement->bindParam('tid', $rs["tx_id"]);
     $statement->bindParam('uid', $tx["uid"]);
-    $statement->bindParam('coin', $tx["coin"]);
+    $statement->bindParam('currency', $tx["currency"]);
     $statement->bindParam('network', $tx["network"]);
     $statement->bindParam('address', $rs["address"]);
     $statement->bindParam('fee', $rs["fee"]);
@@ -79,10 +79,10 @@ class WalletRepository extends BaseRepository
     $statement->execute();
   }
 
-  public function getTx(string $uid, string $tid): array
+  public function getWithdraw(string $uid, string $tid): array
   {
     $query = '
-        SELECT * FROM `transactions` WHERE tid = :tid AND `uid` = :uid
+        SELECT * FROM `withdraws` WHERE tid = :tid AND `uid` = :uid
     ';
 
     $statement = $this->getDb()->prepare($query);
@@ -98,11 +98,11 @@ class WalletRepository extends BaseRepository
     return $tx;
   }
 
-  public function updateTx(string $uid, string $tid, string $status): void
+  public function updateWithdraw(string $uid, string $tid, string $status): void
   {
     $now   = date('Y-m-d\TH:i:s.uP', time());
     $query = '
-        UPDATE `transactions` 
+        UPDATE `withdraws` 
         SET `status` = :status, `updated_at` = :updated_at 
         WHERE tid = :tid AND `uid` = :uid
     ';
@@ -115,18 +115,18 @@ class WalletRepository extends BaseRepository
     $statement->execute();
   }
 
-  public function getAllTx(string $coin, string $network, string $userId): Array
+  public function getWithdrawals(string $currency, string $network, string $userId): Array
   {
     $query = '
         SELECT `tid`, `address`, `amount`, `fee`, `created_at`, `updated_at`, `status` FROM 
-          `transactions` t 
+          `withdraws` 
         WHERE 
-          t.uid = :uid AND t.coin = :coin AND t.network = :network 
+          uid = :uid AND currency = :currency AND network = :network 
         ORDER BY `created_at` DESC
     ';
     $statement = $this->getDb()->prepare($query);
     $statement->bindParam('uid', $userId);
-    $statement->bindParam('coin', $coin);
+    $statement->bindParam('currency', $currency);
     $statement->bindParam('network', $network);
     $statement->execute();
 
@@ -136,11 +136,27 @@ class WalletRepository extends BaseRepository
     }
 
     return [
-      "uid"     => $userId,
-      "coin"    => $coin,
-      "network" => $network,
-      "transactions" => $allTx
+      "uid"      => $userId,
+      "currency" => $currency,
+      "network"  => $network,
+      "withdrawals" => $allTx
     ];
   }
 
+  public function saveTransaction(array $tx): void
+  {
+    $query = '
+        INSERT INTO `transactions` 
+          (`tid`, `uid`, `currency`, `network`) 
+        VALUES 
+          (:tid, :uid, :currency, :network);
+    ';
+
+    $statement = $this->getDb()->prepare($query);
+    $statement->bindParam('tid', $tx["tid"]);
+    $statement->bindParam('uid', $tx["uid"]);
+    $statement->bindParam('currency', $tx["currency"]);
+    $statement->bindParam('network', $tx["network"]);
+    $statement->execute();
+  }
 }

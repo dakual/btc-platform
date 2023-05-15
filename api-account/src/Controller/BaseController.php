@@ -25,15 +25,15 @@ abstract class BaseController
   {
     $cookies  = new Cookies();
     $cookies->setDefaults([
-      'hostonly' => true, 
-      'secure'   => true, 
+      'hostonly' => false, 
+      'secure'   => false, 
       'httponly' => true, 
-      'samesite' => 'Lax'
+      'sameSite' => 'None'
     ]);
     $cookies->set('_token', [
       'value'    => $jwt,
-      'path'     => $request->getUri()->getHost(),
-      'samesite' => 'Strict',
+      'path'     => '/', // $request->getUri()->getHost(),
+      // 'samesite' => 'Strict',
       'expires'  => empty($jwt) ? 1 : time() + 3600,
     ]);
     
