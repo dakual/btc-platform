@@ -9,7 +9,7 @@ const Home = () => {
   React.useEffect(() => {
     const wallets  = WalletService.getWallet(); 
     console.log(wallets); 
-    if(true) {
+    if(false) {
       navigate("/login");
     }
   });

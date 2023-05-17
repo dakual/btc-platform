@@ -8,10 +8,6 @@ class UserService {
     return axios
       .post(API_URL + "/user/login", credentials) // { withCredentials: true }
       .then(response => {
-        if (response.data.data && response.data.data.token) {
-          localStorage.setItem("accessToken", response.data.data.token);
-        }
-
         return response.data;
       });
   }

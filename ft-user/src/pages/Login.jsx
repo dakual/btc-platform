@@ -38,14 +38,14 @@ class Login extends React.Component {
       'username' : this.state.username,
       'password' : this.state.password
     }).then(response => {
-        if(response.status === false) {
+        if(response.status === 'success') {
+          localStorage.setItem("accessToken", response.data.token);
+          this.props.router.navigate('/');
+        } else {
           this.setState({
             loading: false,
             message: response.error.message
-          });
-        } else {
-          // let wallets = await WalletService.getWallet();
-          this.props.router.navigate('/');
+          });          
         }
       },
       error => {
