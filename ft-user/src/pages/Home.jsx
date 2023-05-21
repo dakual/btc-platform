@@ -1,18 +1,9 @@
 import React from 'react'
-import Topnav from '../components/topnav'
-import Sidenav from '../components/sidenav'
-import Content from '../components/content'
 
 const Home = () => {
 
   return (
-    <div>
-      <Topnav />
-      <div id="layoutSidenav">
-        <Sidenav />  
-        <Content />
-      </div>
-    </div>
+    <div>Home</div>
   )
 }
 

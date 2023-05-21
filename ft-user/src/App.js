@@ -2,6 +2,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom"
 import Login from "./pages/Login"
 import Register from "./pages/Register"
 import Home from "./pages/Home"
+import Forgot from "./pages/Forgot"
+import Reset from "./pages/Reset"
+
 
 function App() {
   return (
@@ -11,6 +14,8 @@ function App() {
           <Route index element={<Home />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
+          <Route path="forgot" element={<Forgot />} />
+          <Route path="reset" element={<Reset />} />
         </Route>
       </Routes>
     </BrowserRouter>
@@ -18,5 +23,4 @@ function App() {
 }
 
 export default App;
-
 

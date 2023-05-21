@@ -1,136 +1,89 @@
-import React from "react";
+import React, { useState } from 'react';
 import Alert from "../components/Alert";
 import UserService from "../services/user";
-import { withRouter } from '../common/with-router';
 
-class Login extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      username: "",
-      password: "",
-      message: "",
-      loading: false
-    };
 
-    this.handleInputChange = this.handleInputChange.bind(this);
-    this.handleSubmit      = this.handleSubmit.bind(this);
-  }
+const Login = () => {
+  const [username, setUsername] = useState('daghan.altunsoy@gmail.com');
+  const [password, setPassword] = useState('1234');
+  const [remember, setRemember] = useState(true);
+  const [message, setMessage]   = useState();
 
-  handleInputChange(event) {
-    event.preventDefault();
+  const handleSubmit = async e => {
+    e.preventDefault();
 
-    const target = event.target;
-    this.setState({
-      [target.name]: target.value,
-    });
-  }
-
-  async handleSubmit(event) {
-    event.preventDefault();
-
-    this.setState({
-      message: "",
-      loading: true
-    });
+    const form = e.currentTarget;
+    if (form.checkValidity() === false) {
+      e.stopPropagation();
+      return;
+    }
 
     UserService.login({
-      'username' : this.state.username,
-      'password' : this.state.password
+      'username' : username,
+      'password' : password
     }).then(response => {
         if(response.status === 'success') {
           localStorage.setItem("accessToken", response.data.token);
-          this.props.router.navigate('/');
+          // window.location.href = "/";
         } else {
-          this.setState({
-            loading: false,
-            message: response.error.message
-          });          
+          setMessage(response.error.message);     
         }
-      },
-      error => {
-        this.setState({
-          loading: false,
-          message: error.toString()
-        });
-      }
-    );
+    },
+    error => {
+      setMessage(error.toString());   
+    });
   }
 
-
-  render() {
-    return (
-    <div id="layoutAuthentication">
-      <div id="layoutAuthentication_content">
-          <main>
-              <div className="container">
-                  <div className="row justify-content-center">
-                      <div className="col-lg-5">
-                          <div className="card shadow-lg border-0 rounded-lg mt-5">
-                              <div className="card-header"><h3 className="text-center font-weight-light my-4">Login</h3></div>
-                              <div className="card-body">
-                                  <form onSubmit={this.handleSubmit}>
-                                      <div className="form-floating mb-3">
-                                          <input
-                                            id="username"
-                                            className="form-control"
-                                            placeholder="name@example.com"
-                                            name="username"
-                                            type="text"
-                                            value={this.state.username}
-                                            onChange={this.handleInputChange} />
-                                          <label htmlFor="username">Email address</label>
-                                      </div>
-                                      <div className="form-floating mb-3">
-                                          <input
-                                            className="form-control"
-                                            id="password"
-                                            placeholder="Password"
-                                            name="password"
-                                            type="password"
-                                            value={this.state.password}
-                                            onChange={this.handleInputChange} />
-                                          <label htmlFor="password">Password</label>
-                                      </div>
-                                      <div className="form-check mb-3">
-                                          <input className="form-check-input" id="inputRememberPassword" type="checkbox" value="" />
-                                          <label className="form-check-label" htmlFor="inputRememberPassword">Remember Password</label>
-                                      </div>
-
-                                      <Alert message={this.state.message} />
-
-                                      <div className="d-flex align-items-center justify-content-between mt-4 mb-0">
-                                          <a className="small" href="/login">Forgot Password?</a>
-                                          <button className="btn btn-primary" type="submit">Login</button>
-                                      </div>
-                                  </form>
-                              </div>
-                              <div className="card-footer text-center py-3">
-                                  <div className="small"><a href="/register">Need an account? Sign up!</a></div>
-                              </div>
-                          </div>
-                      </div>
+  return (
+    <section className="h-100">
+      <div className="container h-100">
+        <div className="row justify-content-sm-center h-100">
+          <div className="col-xxl-4 col-xl-5 col-lg-5 col-md-7 col-sm-9">
+            <div className="text-center my-5">
+              <img src={require('../assets/logo.png')} alt="logo" width="100" />
+            </div>
+            <div className="card shadow-lg">
+              <div className="card-body">
+                <h1 className="fs-4 card-title fw-bold mb-4">Login</h1>
+                <form method="POST" onSubmit={handleSubmit} autoComplete="off">
+                  <div className="mb-3">
+                    <label className="mb-2 text-muted" htmlFor="email">E-Mail Address</label>
+                    <input id="email" type="email" className="form-control" name="email" value={username} onChange={e => setUsername(e.target.value)} required autoFocus />
+                    <div className="invalid-feedback"> Email is invalid </div>
                   </div>
-              </div>
-          </main>
-      </div>
-      <div id="layoutAuthentication_footer">
-          <footer className="py-4 bg-light mt-auto">
-              <div className="container-fluid px-4">
-                  <div className="d-flex align-items-center justify-content-between small">
-                      <div className="text-muted">Copyright &copy; Your Website 2023</div>
-                      <div>
-                          <a href="/">Privacy Policy</a>
-                          &middot;
-                          <a href="/">Terms &amp; Conditions</a>
-                      </div>
+
+                  <div className="mb-3">
+                    <div className="mb-2 w-100">
+                      <label className="text-muted" htmlFor="password">Password</label>
+                      <a href="/forgot" className="float-end"> Forgot Password? </a>
+                    </div>
+                    <input id="password" type="password" className="form-control" name="password" value={password} onChange={e => setPassword(e.target.value)} required />
+                    <div className="invalid-feedback"> Password is required </div>
+                  </div> 
+
+                  <div className="d-flex align-items-center">
+                    <div className="form-check">
+                      <input type="checkbox" name="remember" id="remember" className="form-check-input" checked={remember} onChange={e => setRemember(e.target.value)} />
+                      <label htmlFor="remember" className="form-check-label">Remember Me</label>
+                    </div>
+                    <button type="submit" className="btn btn-primary ms-auto"> Login </button>
                   </div>
+                </form>
+
+                <Alert message={message} />
+
               </div>
-          </footer>
+              <div className="card-footer py-3 border-0">
+                <div className="text-center"> Don't have an account? <a href="/register" className="text-dark">Create One</a>
+                </div>
+              </div>
+            </div>
+            <div className="text-center mt-5 text-muted"> Copyright &copy; 2017-2023 &mdash; Your Company </div>
+          </div>
+        </div>
       </div>
-    </div>
-    );
-  }
+    </section>
+  )
 }
 
-export default withRouter(Login);
+export default Login

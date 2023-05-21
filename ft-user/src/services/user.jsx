@@ -12,6 +12,14 @@ class UserService {
       });
   }
 
+  async register(values) {
+    return axios
+      .post(API_URL + "/user/create", values) // { withCredentials: true }
+      .then(response => {
+        return response.data;
+      });
+  }
+
   logout() {
     localStorage.removeItem("user");
   }
