@@ -1,11 +1,21 @@
-import React from "react";
+import React from 'react'
+import Topnav from '../components/topnav'
+import Sidenav from '../components/sidenav'
+import Content from '../components/content'
 
 const Home = () => {
 
   return (
-    <div>Home</div>
+    <div>
+      <Topnav />
+      <div id="layoutSidenav">
+        <Sidenav />  
+        <Content />
+      </div>
+    </div>
   )
 }
+
 
 export default Home
 
