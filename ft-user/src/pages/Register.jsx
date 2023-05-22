@@ -9,8 +9,8 @@ const Register = () => {
 	const [name, setName] 				= useState('daghan');
 	const [username, setUsername] = useState('daghan@gmail.com');
   const [password, setPassword] = useState('1234');
-  const [passwordType, setPasswordType] = useState("password");
   const [message, setMessage]   = useState();
+	const [passwordType, setPasswordType] = useState("password");
 
 	const togglePassword = () => {
     if(passwordType==="password") {
