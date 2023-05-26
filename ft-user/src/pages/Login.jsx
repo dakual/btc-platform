@@ -24,7 +24,7 @@ const Login = () => {
     }).then(response => {
         if(response.status === 'success') {
           localStorage.setItem("accessToken", response.data.token);
-          // window.location.href = "/";
+          window.location.href = "/user";
         } else {
           setMessage(response.error.message);     
         }

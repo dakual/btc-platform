@@ -1,20 +1,17 @@
 import axios from 'axios';
 import authHeader from './auth-header';
-import { useNavigate } from "react-router-dom";
-
+// import { useNavigate } from "react-router-dom";
 
 const API_URL = 'http://localhost:8081/api';
 
+class WalletService {
 
-const WalletService = () => {
-  const navigate = useNavigate();
-
-  const getWallet = async () => {
+  async getWallet() {
     return axios
       .get(API_URL + '/wallet?currency=btc', { headers: authHeader() })
       .then((response) => {
         if (response.data.error && response.data.error.code === 401) {
-          navigate("/");
+          // navigate("/");
         }
   
         return response.data;
@@ -22,4 +19,6 @@ const WalletService = () => {
   }
 }
 
-export default WalletService;
+const ws = new WalletService();
+
+export default ws; 
