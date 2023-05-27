@@ -65,6 +65,8 @@ class BitcoinLib
     return (new \ReflectionClass($this->network))->getShortName() == 'BitcoinTestnet' ? 'testnet' : 'mainnet';
   }
 
+
+
   public function createTx(array $wallet, string $address, int $amount): array {
     $network     = Bitcoin::getNetwork();    
     $ecAdapter   = Bitcoin::getEcAdapter();
@@ -78,7 +80,6 @@ class BitcoinLib
     $unspentList = [];
     $wallet      = json_decode(json_encode($wallet), true);
     $wallets     = $wallet["wallets"];
-    $userId      = $wallet["uid"];
 
     try {
       $address = $addrCreator->fromString($address, $network);
@@ -187,24 +188,19 @@ class BitcoinLib
     }
 
     $signed = $signer->get();
+
     return [
-      "uid"          => $wallet["uid"],
-      "currency"     => $wallet["currency"],
-      "network"      => $wallet["network"],
-      "transaction"  => array(
-          "address"      => $address->getAddress(),
-          "input_count"  => $inputCount,
-          "output_count" => $outputCount,
-          "fee"          => $fee,
-          "fee_rate"     => $feeRate,
-          "unspent"      => $totalUnspentAmount,
-          "amount"       => $userWillReceive,
-          "residue"      => $totalExtraAmount,
-          "tx_id"        => $signed->getTxId()->getHex(),
-          "tx_hex"       => $signed->getHex(),
-          "created_at"   => date('Y-m-d\TH:i:s.uP', time()),
-          "status"       => "pending"        
-      )
+      "address"      => $address->getAddress(),
+      "input_count"  => $inputCount,
+      "output_count" => $outputCount,
+      "fee"          => $fee,
+      "fee_rate"     => $feeRate,
+      "unspent"      => $totalUnspentAmount,
+      "amount"       => $userWillReceive,
+      "residue"      => $totalExtraAmount,
+      "tx_id"        => $signed->getTxId()->getHex(),
+      "tx_hex"       => $signed->getHex(),
+      "created"      => date('Y-m-d H:i:s', time())
     ];
   }
 

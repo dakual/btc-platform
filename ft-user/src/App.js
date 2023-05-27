@@ -8,6 +8,7 @@ import Reset from "./pages/Reset"
 import Dashboard from './pages/Dashboard';
 import UserLayout from './components/Layout';
 import Wallet from './pages/Wallet';
+import Withdraw from './pages/Withdraw';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
       <Route path="/user" element={<UserLayout />}>
         <Route index element={<Dashboard />} />
         <Route path="wallet" element={<Wallet />} />
+        <Route path="withdraw" element={<Withdraw />} />
       </Route>
       <Route path="/">
         <Route index element={<Home />} />

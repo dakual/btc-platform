@@ -44,8 +44,7 @@ $app->group('/api', function (RouteCollectorProxy $group) {
 
   $group->group('/withdraw', function (RouteCollectorProxy $group) {
     $group->get('', Controller\GetAllWithdraws::class);
-    $group->post('/create', Controller\CreateWithdraw::class);
-    $group->post('/send', Controller\Withdraw::class);
+    $group->post('', Controller\Withdraw::class);
   })->add(new App\Middleware\Auth());
 
   $group->group('/tx', function (RouteCollectorProxy $group) {

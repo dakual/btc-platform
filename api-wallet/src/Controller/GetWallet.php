@@ -35,16 +35,16 @@ class GetWallet extends BaseController
       $wallets    = $this->repository->getWallet($params["currency"], $bitcoinLib->getNetwork(), $userId);
 
       // Get wallet balance from electrumx
-      $totalConfirmed  = 0;
-      $totalUnonfirmed = 0;
+      $totalConfirmed   = 0;
+      $totalUnconfirmed = 0;
 
       $jsonrpc = new Jsonrpc();
       foreach ($wallets["wallets"] as $key => $value) {
         $scriptHash = $bitcoinLib->toScriptHash($value->address);
         $balance    = $jsonrpc->call("blockchain.scripthash.get_balance", array($scriptHash));
 
-        $totalConfirmed  += (int) $balance["result"]["confirmed"];
-        $totalUnonfirmed += (int) $balance["result"]["unconfirmed"];
+        $totalConfirmed   += (int) $balance["result"]["confirmed"];
+        $totalUnconfirmed += (int) $balance["result"]["unconfirmed"];
         $wallets["wallets"][$key]->balance = $balance["result"];
         // $wallets["wallets"][$key]->scripthash = $scriptHash; // will removed
 
@@ -52,8 +52,8 @@ class GetWallet extends BaseController
       }
       $jsonrpc->close();
 
-      $wallets["totalConfirmed"]  = $totalConfirmed;
-      $wallets["totalUnonfirmed"] = $totalUnonfirmed;
+      $wallets["totalConfirmed"]   = $totalConfirmed;
+      $wallets["totalUnconfirmed"] = $totalUnconfirmed;
     } else {
       throw new \Exception('The Currency is not supported!', 400);
     }

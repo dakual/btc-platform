@@ -9,14 +9,6 @@ use App\Entity\WalletEntity;
 use App\Utils\Jsonrpc;
 use App\Libs\BitcoinLib;
 
-use BitWasp\Bitcoin\Address\AddressCreator;
-use BitWasp\Bitcoin\Bitcoin;
-use BitWasp\Bitcoin\Key\Factory\PrivateKeyFactory;
-use BitWasp\Bitcoin\Network\NetworkFactory;
-use BitWasp\Bitcoin\Script\ScriptFactory;
-use BitWasp\Bitcoin\Transaction\Factory\Signer;
-use BitWasp\Bitcoin\Transaction\TransactionFactory;
-use BitWasp\Bitcoin\Transaction\TransactionOutput;
 
 
 class Withdraw extends BaseController
@@ -30,44 +22,66 @@ class Withdraw extends BaseController
 
   public function __invoke(Request $request, Response $response, array $args): Response
   {
-    $userId = $this->getUserId($request);
-    $params = (array) $request->getParsedBody();
-    $params = json_decode(json_encode($params), false);
-    $data   = array();
+    $userId       = $this->getUserId($request);
+    $data         = (array) $request->getParsedBody();
+    $data         = json_decode(json_encode($data), false);
+    $review       = isset($data->action) && $data->action == 'send' ? false : true;
+    $responseData = array();
 
-    if(! isset($params->txid)) {
-      throw new \Exception('The field "TX ID" is required.', 400);
+    if(! isset($data->currency)) {
+      throw new \Exception('The field "Currency" is required.', 400);
     }
 
-    $tx = $this->repository->getWithdraw($userId, $params->txid);
-    if($tx["status"] != 'pending') {
-      throw new \Exception('Transaction is expired!', 400);
+    if(! isset($data->address)) {
+      throw new \Exception('The field "Address" is required.', 400);
     }
 
-    if($tx["currency"] == 'btc') {
-      try {
+    if(! isset($data->amount) || ! is_numeric($data->amount)) {
+      throw new \Exception('The field "Amount" is required.', 400);
+    }
+
+    $bitcoinLib = new BitcoinLib();
+    if($data->currency == 'btc') {
+      $wallets = $this->repository->getWallet($data->currency, $bitcoinLib->getNetwork(), $userId);
+      
+      // Get unspent from electrumx
+      $jsonrpc = new Jsonrpc();
+      foreach ($wallets["wallets"] as $key => $value) {
+        $scriptHash = $bitcoinLib->toScriptHash($value->address);
+        $unspent    = $jsonrpc->call("blockchain.scripthash.listunspent", array($scriptHash));
+        
+        $wallets["wallets"][$key]->unspent = $unspent["result"];
+      }
+      $jsonrpc->close();
+      
+      $transaction = $bitcoinLib->createTx(
+        $wallets, 
+        $data->address, 
+        $data->amount
+      );
+
+      $responseData['uid']         = $wallets['uid'];
+      $responseData['currency']    = $wallets['currency'];
+      $responseData['network']     = $wallets['network'];
+      $responseData['action']      = 'review';
+      $responseData['transaction'] = $transaction;
+      
+      if (! $review) {
         $jsonrpc = new Jsonrpc();
-        $tx_resp = $jsonrpc->call("blockchain.transaction.broadcast", array($tx["hex"]));
+        $tx_resp = $jsonrpc->call("blockchain.transaction.broadcast", array($transaction["tx_hex"]));
         $jsonrpc->close();
         
-        if (strcmp($tx_resp["result"], $tx["tid"]) !== 0) {
+        if (! isset($tx_resp["result"]) || strcmp($tx_resp["result"], $transaction["tx_id"]) !== 0) {
           throw new \Exception('Opps! Something went wrong!', 400);
         }
 
-        $this->repository->updateWithdraw($userId, $params->txid, 'completed');
-        $data = [
-          "result" => "success",
-          "txid"   => $tx_resp["result"]
-        ];
-      } catch(\Exception $ex) {
-        $this->repository->updateWithdraw($userId, $params->txid, 'faild');
-        throw new \Exception($ex->getMessage(), 400);
+        $responseData['action'] = 'send';
       }
     } else {
-      throw new \Exception('The Coin is not supported!', 400);
+      throw new \Exception('The currency is not supported!', 400);
     }
 
-    return $this->jsonResponse($response, 'success', $data, 200);
+    return $this->jsonResponse($response, 'success', $responseData, 200);
   }
 
 

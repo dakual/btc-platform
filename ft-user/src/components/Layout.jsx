@@ -27,6 +27,7 @@ const UserLayout = () => {
         <div className="list-group list-group-flush">
           <Link className="list-group-item list-group-item-action list-group-item-light p-3" to="/user">Dashboard</Link>
           <Link className="list-group-item list-group-item-action list-group-item-light p-3" to="/user/wallet">Wallet</Link>
+          <Link className="list-group-item list-group-item-action list-group-item-light p-3" to="/user/withdraw">Withdraw</Link>
           <Link className="list-group-item list-group-item-action list-group-item-light p-3" to="/" onClick={handleLogout}>Logout</Link>
         </div>
       </div>
