@@ -59,23 +59,21 @@ class WalletRepository extends BaseRepository
   {
     $query = '
         INSERT INTO `withdraws` 
-          (`tid`, `uid`, `currency`, `network`, `address`, `fee`, `amount`, `hex`, `created_at`, `status`) 
+          (`tid`, `uid`, `currency`, `network`, `address`, `fee`, `amount`, `hex`, `created_at`) 
         VALUES 
-          (:tid, :uid, :currency, :network, :address, :fee, :amount, :hex, :created_at, :status);
+          (:tid, :uid, :currency, :network, :address, :fee, :amount, :hex, :created_at);
     ';
-    $rs = $tx["transaction"];
 
     $statement = $this->getDb()->prepare($query);
-    $statement->bindParam('tid', $rs["tx_id"]);
-    $statement->bindParam('uid', $tx["uid"]);
-    $statement->bindParam('currency', $tx["currency"]);
-    $statement->bindParam('network', $tx["network"]);
-    $statement->bindParam('address', $rs["address"]);
-    $statement->bindParam('fee', $rs["fee"]);
-    $statement->bindParam('amount', $rs["amount"]);
-    $statement->bindParam('hex', $rs["tx_hex"]);
-    $statement->bindParam('created_at', $rs["created_at"]);
-    $statement->bindParam('status', $rs["status"]);
+    $statement->bindParam('tid', $tx['transaction']['tx_id']);
+    $statement->bindParam('uid', $tx['uid']);
+    $statement->bindParam('currency', $tx['currency']);
+    $statement->bindParam('network', $tx['network']);
+    $statement->bindParam('address', $tx['transaction']['address']);
+    $statement->bindParam('fee', $tx['transaction']['fee']);
+    $statement->bindParam('amount', $tx['transaction']['amount']);
+    $statement->bindParam('hex', $tx['transaction']['tx_hex']);
+    $statement->bindParam('created_at', $tx['transaction']['created']);
     $statement->execute();
   }
 
@@ -98,27 +96,10 @@ class WalletRepository extends BaseRepository
     return $tx;
   }
 
-  public function updateWithdraw(string $uid, string $tid, string $status): void
-  {
-    $now   = date('Y-m-d\TH:i:s.uP', time());
-    $query = '
-        UPDATE `withdraws` 
-        SET `status` = :status, `updated_at` = :updated_at 
-        WHERE tid = :tid AND `uid` = :uid
-    ';
-
-    $statement = $this->getDb()->prepare($query);
-    $statement->bindParam('status', $status);
-    $statement->bindParam('updated_at', $now);
-    $statement->bindParam('tid', $tid);
-    $statement->bindParam('uid', $uid);
-    $statement->execute();
-  }
-
   public function getWithdrawals(string $currency, string $network, string $userId): Array
   {
     $query = '
-        SELECT `tid`, `address`, `amount`, `fee`, `created_at`, `updated_at`, `status` FROM 
+        SELECT * FROM 
           `withdraws` 
         WHERE 
           uid = :uid AND currency = :currency AND network = :network 
@@ -130,8 +111,8 @@ class WalletRepository extends BaseRepository
     $statement->bindParam('network', $network);
     $statement->execute();
 
-    $allTx = (array) $statement->fetchAll(\PDO::FETCH_CLASS) ?: [];
-    if (! $allTx) {
+    $withdrawals = (array) $statement->fetchAll(\PDO::FETCH_CLASS) ?: [];
+    if (! $withdrawals) {
       throw new \Exception('Wallet not found.', 404);
     }
 
@@ -139,7 +120,7 @@ class WalletRepository extends BaseRepository
       "uid"      => $userId,
       "currency" => $currency,
       "network"  => $network,
-      "withdrawals" => $allTx
+      "withdrawals" => $withdrawals
     ];
   }
 
@@ -159,4 +140,21 @@ class WalletRepository extends BaseRepository
     $statement->bindParam('network', $tx["network"]);
     $statement->execute();
   }
+
+  // public function updateWithdraw(string $uid, string $tid, string $status): void
+  // {
+  //   $now   = date('Y-m-d\TH:i:s.uP', time());
+  //   $query = '
+  //       UPDATE `withdraws` 
+  //       SET `status` = :status, `updated_at` = :updated_at 
+  //       WHERE tid = :tid AND `uid` = :uid
+  //   ';
+
+  //   $statement = $this->getDb()->prepare($query);
+  //   $statement->bindParam('status', $status);
+  //   $statement->bindParam('updated_at', $now);
+  //   $statement->bindParam('tid', $tid);
+  //   $statement->bindParam('uid', $uid);
+  //   $statement->execute();
+  // }
 }

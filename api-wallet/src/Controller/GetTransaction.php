@@ -9,6 +9,7 @@ use App\Utils\Jsonrpc;
 use App\Libs\BitcoinLib;
 
 
+
 class GetTransaction extends BaseController
 {
   private WalletRepository $repository;
@@ -63,7 +64,7 @@ class GetTransaction extends BaseController
         $height = (int)$item["height"];
         $transactions[$k]["confirmation"] = $height > 0 ? $currentHeight - $height : 0;
         $transactions[$k]["hex"]          = $hex;
-        // $transactions[$k]["decoded"]      = $bitcoinLib->decodeRaw($hex, $verbode = true);
+        $transactions[$k]["decoded"]      = $bitcoinLib->decodeRaw($hex, $verbode = false);
       }
 
       $jsonrpc->close();

@@ -16,6 +16,7 @@ use BitWasp\Bitcoin\Transaction\TransactionOutput;
 use BitWasp\Bitcoin\Script\P2shScript;
 use BitWasp\Bitcoin\Amount;
 use BitWasp\Buffertools\Buffertools;
+use BitWasp\Bitcoin\Locktime;
 
 class BitcoinLib
 {
@@ -211,12 +212,14 @@ class BitcoinLib
     $jsonrpc     = new Jsonrpc();
     $amount      = new Amount();
 
-    $tx = TransactionFactory::fromHex($raw);
+    $tx = TransactionFactory::fromHex($raw); //var_dump($tx);
     $result['txid']  = $tx->getTxId()->getHex();
     $result['value'] = (int)$tx->getValueOut(); // $amount->toBtc($tx->getValueOut());
     $result['version'] = $tx->getVersion();
     $result['nIn'] = count($tx->getInputs());
     $result['nOut'] = count($tx->getOutputs());
+    $result['locktime'] = $tx->getLockTime();
+
     foreach ($tx->getInputs() as $key => $input) 
     {
       $txid = $input->getOutPoint()->getTxId()->getHex();

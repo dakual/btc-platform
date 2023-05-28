@@ -43,11 +43,11 @@ $app->group('/api', function (RouteCollectorProxy $group) {
   })->add(new App\Middleware\Auth());
 
   $group->group('/withdraw', function (RouteCollectorProxy $group) {
-    $group->get('', Controller\GetAllWithdraws::class);
+    $group->get('', Controller\GetWithdraw::class);
     $group->post('', Controller\Withdraw::class);
   })->add(new App\Middleware\Auth());
 
-  $group->group('/tx', function (RouteCollectorProxy $group) {
+  $group->group('/transaction', function (RouteCollectorProxy $group) {
     $group->get('', Controller\GetTransaction::class);
   })->add(new App\Middleware\Auth());
 });

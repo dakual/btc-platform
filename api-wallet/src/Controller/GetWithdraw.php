@@ -8,7 +8,7 @@ use App\Repository\WalletRepository;
 use App\Libs\BitcoinLib;
 
 
-class GetAllWithdraws extends BaseController
+class GetWithdraw extends BaseController
 {
   private WalletRepository $repository;
 
@@ -27,12 +27,16 @@ class GetAllWithdraws extends BaseController
     }
 
     if($params["currency"] == 'btc') {
-      $bitcoinLib = new BitcoinLib();
-      $allTx      = $this->repository->getWithdrawals($params["currency"], $bitcoinLib->getNetwork(), $userId);
+      $bitcoinLib  = new BitcoinLib();
+      $withdrawals = $this->repository->getWithdrawals(
+        $params["currency"], 
+        $bitcoinLib->getNetwork(), 
+        $userId
+      );
     } else {
       throw new \Exception('The Currency is not supported!', 400);
     }
 
-    return $this->jsonResponse($response, 'success', $allTx, 200);
+    return $this->jsonResponse($response, 'success', $withdrawals, 200);
   }
 }

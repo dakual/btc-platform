@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard';
 import UserLayout from './components/Layout';
 import Wallet from './pages/Wallet';
 import Withdraw from './pages/Withdraw';
+import Transactions from './pages/Transactions';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route index element={<Dashboard />} />
         <Route path="wallet" element={<Wallet />} />
         <Route path="withdraw" element={<Withdraw />} />
+        <Route path="transactions" element={<Transactions />} />
       </Route>
       <Route path="/">
         <Route index element={<Home />} />

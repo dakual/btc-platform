@@ -1,35 +1,43 @@
-import React from 'react';
+import React from "react";
+import {Modal, Button} from 'react-bootstrap';
 
-class Modal extends React.Component {
-  // constructor(props) {
-  //   super(props);
-  // }
 
-  show() {
-    (this.modal).modal('show');
-  };
+class WithdrawModal {
+  constructor(props) {
+    super(props);
+    this.state = {
+      show: false,
+      title: "",
+      body: ""
+    };
+  }
+
+  handleClose = () => {
+    this.setState({ show: false });
+  }
+
+  show = () => {
+    this.setState({ show: true });
+  }
 
   render() {
     return (
-      <div className="modal" tabIndex="-1" ref={modal => this.modal = modal}>
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">{this.props.title}</h5>
-              <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div className="modal-body">
-              <p>{this.props.message}</p>
-            </div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              <button type="button" className="btn btn-primary">Save changes</button>
-            </div>
-          </div>
-        </div>
-      </div>      
+      <Modal show={this.props.show} onHide={this.handleClose}>
+        <Modal.Header closeButton>
+          <Modal.Title>Modal heading</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Woohoo, you're reading this text in a modal!</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={this.handleClose}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={this.handleClose}>
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
     );
   }
 }
 
-export default Modal
+export default WithdrawModal;

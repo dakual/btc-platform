@@ -63,7 +63,7 @@ class Withdraw extends BaseController
       $responseData['uid']         = $wallets['uid'];
       $responseData['currency']    = $wallets['currency'];
       $responseData['network']     = $wallets['network'];
-      $responseData['action']      = 'review';
+      $responseData['action']      = ($review) ? 'review' : 'send';
       $responseData['transaction'] = $transaction;
       
       if (! $review) {
@@ -72,10 +72,10 @@ class Withdraw extends BaseController
         $jsonrpc->close();
         
         if (! isset($tx_resp["result"]) || strcmp($tx_resp["result"], $transaction["tx_id"]) !== 0) {
-          throw new \Exception('Opps! Something went wrong!', 400);
+          throw new \Exception('RPC! Something went wrong!', 400);
         }
 
-        $responseData['action'] = 'send';
+        $this->repository->saveWithdraw($responseData);
       }
     } else {
       throw new \Exception('The currency is not supported!', 400);

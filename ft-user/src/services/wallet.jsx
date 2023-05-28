@@ -22,10 +22,6 @@ class WalletService {
     return axios
       .post(API_URL + '/wallet', params, { headers: authHeader() })
       .then((response) => {
-        if (response.data.error && response.data.error.code === 401) {
-          // navigate("/");
-        }
-  
         return response.data;
       });
   }
@@ -34,10 +30,22 @@ class WalletService {
     return axios
       .post(API_URL + '/withdraw', params, { headers: authHeader() })
       .then((response) => {
-        if (response.data.error && response.data.error.code === 401) {
-          // navigate("/");
-        }
-  
+        return response.data;
+      });
+  }
+
+  async getTransactions() {
+    return axios
+      .get(API_URL + '/transaction?currency=btc', { headers: authHeader() })
+      .then((response) => {
+        return response.data;
+      });
+  }
+
+  async getWithdrawals() {
+    return axios
+      .get(API_URL + '/withdraw?currency=btc', { headers: authHeader() })
+      .then((response) => {
         return response.data;
       });
   }

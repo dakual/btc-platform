@@ -7,7 +7,7 @@ class Alert extends React.Component {
   
   render() {
     if (!this.props.message) return "";
-    return <div id="alert">{this.props.message}</div>;
+    return <div className="alert alert-success" role="alert">{this.props.message}</div>;
   }
 }
 
