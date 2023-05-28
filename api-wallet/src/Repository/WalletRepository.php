@@ -90,7 +90,7 @@ class WalletRepository extends BaseRepository
 
     $tx = $statement->fetch(\PDO::FETCH_ASSOC);
     if (! $tx) {
-      throw new \Exception('Transaction not found.', 400);
+      throw new \Exception('Withdraw not found.', 400);
     }
 
     return $tx;
