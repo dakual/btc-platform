@@ -1,11 +1,3 @@
-CREATE TABLE `transactions` (
-  `tid` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `uid` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
-  `currency` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `network` varchar(255) COLLATE utf8mb4_general_ci NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-
 CREATE TABLE `users` (
   `id` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
@@ -43,14 +35,8 @@ CREATE TABLE `withdraws` (
   `fee` int NOT NULL,
   `amount` int NOT NULL,
   `hex` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-  `created_at` datetime NOT NULL,
-  `updated_at` datetime DEFAULT NULL,
-  `status` varchar(20) COLLATE utf8mb4_general_ci NOT NULL
+  `created_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-
-ALTER TABLE `transactions`
-  ADD PRIMARY KEY (`tid`);
 
 
 ALTER TABLE `users`
