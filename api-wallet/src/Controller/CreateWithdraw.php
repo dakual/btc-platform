@@ -11,7 +11,7 @@ use App\Libs\BitcoinLib;
 
 
 
-class Withdraw extends BaseController
+class CreateWithdraw extends BaseController
 {
   private WalletRepository $repository;
 

@@ -42,7 +42,21 @@ class Jsonrpc
 
     if ($this->socket)
     {
-      fwrite($this->socket, json_encode($query)."\n");
+      fwrite($this->socket, json_encode($query));
+      fwrite($this->socket, "\n");
+      fflush($this->socket);
+
+      // $response = fgets($this->socket);
+      // if ($response === false) {
+      //     throw new \Exception('Connection to failed');
+      // }
+      // $result = json_decode($response, true);
+      // if(isset($result['error'])){
+      //     throw new \Exception($result['error']['message']);
+      // }
+      
+      // return $result['result'];
+
       $value  = fread($this->socket, 10240);
       $result = json_decode($value, true);
       if (! isset($result["result"])) {
